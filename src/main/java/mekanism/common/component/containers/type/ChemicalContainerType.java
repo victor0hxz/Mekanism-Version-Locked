@@ -1,5 +1,6 @@
 package mekanism.common.component.containers.type;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.SerializationConstants;
@@ -28,6 +29,15 @@ public class ChemicalContainerType extends ResourceContainerType<ChemicalResourc
 
     ChemicalContainerType() {
         super(MekanismDataComponents.ATTACHED_CHEMICALS, SerializationConstants.CHEMICAL_TANKS, Capabilities.CHEMICAL, LargeResourceStack.CHEMICAL_HELPER);
+    }
+
+    @Nullable
+    @Override
+    protected ResourceHandler<ChemicalResource> createHandler(net.neoforged.neoforge.transfer.access.ItemAccess access) {
+        var handler = super.createHandler(access);
+        if (handler == null) return null;
+        return new mekanism.common.capabilities.chemical.LegacyChemicalResourceHandler(
+              (mekanism.api.resource.IMekanismResourceHandler<ChemicalResource, IChemicalTank>)handler);
     }
 
     @Override

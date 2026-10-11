@@ -27,6 +27,12 @@ import org.jspecify.annotations.Nullable;
 
 public final class ChemicalStack implements ChemicalInstance, IHasTextComponent, IHasTranslationKey {
 
+    /** Legacy addon compatibility; chemical identity owns its radiation attributes. */
+    public boolean isRadioactive() { return !isEmpty() && getChemical().isRadioactive(); }
+
+    /** Retained long-amount descriptor for already compiled addon consumers. */
+    public void setAmount(long amount) { setAmount((int)Math.max(0,Math.min(amount,Integer.MAX_VALUE))); }
+
     /// Empty ChemicalStack instance.
     public static final ChemicalStack EMPTY = new ChemicalStack(null);
 

@@ -43,16 +43,16 @@ public abstract class CapableContainerType<CONTAINER extends ValueIOSerializable
 
     protected ICapabilityProvider<ItemStack, ItemAccess, HANDLER> getCapabilityProvider(IMekanismConfig... requiredConfigs) {
         if (requiredConfigs.length == 0) {
-            return (_, itemAccess) -> createHandler(itemAccess);
+            return (stack, itemAccess) -> createHandler(itemAccess == null ? ItemAccess.forStack(stack) : itemAccess);
         }
         //Only expose the capabilities if the required configs are loaded
-        return (_, itemAccess) -> {
+        return (stack, itemAccess) -> {
             for (IMekanismConfig requiredConfig : requiredConfigs) {
                 if (!requiredConfig.isLoaded()) {
                     return null;
                 }
             }
-            return createHandler(itemAccess);
+            return createHandler(itemAccess == null ? ItemAccess.forStack(stack) : itemAccess);
         };
     }
 
