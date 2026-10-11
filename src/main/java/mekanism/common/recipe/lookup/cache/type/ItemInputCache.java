@@ -23,7 +23,8 @@ public class ItemInputCache<RECIPE extends MekanismRecipe<?>> extends ComponentS
     }
 
     private boolean mapIngredient(RECIPE recipe, Ingredient input) {
-        if (input.isSimple()) {
+        // Custom ingredients may be simple without exposing vanilla holder values.
+        if (input.isSimple() && input.getCustomIngredient() == null) {
             //Simple ingredients don't actually check anything related to NBT,
             // so we can add the items to our base/raw input cache directly
             for (Holder<Item> item : input.getValues()) {
