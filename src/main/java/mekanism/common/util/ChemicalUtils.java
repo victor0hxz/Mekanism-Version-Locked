@@ -82,7 +82,7 @@ public class ChemicalUtils {
             }
         }
         if (toDump > 0) {
-            chemicalTank.setContents(chemicalType, amount - toDump, null);
+            chemicalTank.setContents(chemicalType, amount - Math.min(amount, toDump), null);
         }
     }
 }

@@ -64,6 +64,7 @@ import mekanism.common.tile.component.config.slot.InventorySlotInfo;
 import mekanism.common.tile.interfaces.IHasGasMode;
 import mekanism.common.tile.prefab.TileEntityRecipeMachine;
 import mekanism.common.util.ChemicalUtils;
+import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.NBTUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
@@ -309,12 +310,13 @@ public class TileEntityElectrolyticSeparator extends TileEntityRecipeMachine<Ele
 
     @Override
     public void recalculateUpgrades(Upgrade upgrade) {
-        super.recalculateUpgrades(upgrade);
         if (upgrade == Upgrade.SPEED) {
-            double speed = Math.pow(2, getUpgrades(Upgrade.SPEED));
-            baselineMaxOperations = (int) speed;
-            dumpRate = (int) (BASE_DUMP_RATE * speed);
+            double speed = MekanismUtils.getUpgradeMultiplier(this, Upgrade.SPEED);
+            baselineMaxOperations = Math.max(1, MathUtils.clampToInt(speed));
+            dumpRate = MathUtils.clampToInt(BASE_DUMP_RATE * speed);
         }
+        // Recalculate the buffer only after the operation count has been updated.
+        super.recalculateUpgrades(upgrade);
     }
 
     public ElectroSeparatorEnergyContainer energyContainer() {

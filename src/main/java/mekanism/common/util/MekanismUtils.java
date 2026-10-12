@@ -313,6 +313,10 @@ public final class MekanismUtils {
     /// @param def  the original, default energy required
     ///
     /// @return required energy per tick
+    public static double getUpgradeMultiplier(IUpgradeTile tile, Upgrade upgrade) {
+        return 1 + tile.getUpgrades(upgrade) * 0.5D;
+    }
+
     public static int getEnergyPerTick(IUpgradeTile tile, int def) {
         if (tile.supportsUpgrades()) {
             return Mth.ceil(def * Math.pow(

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import mekanism.client.render.lib.effect.BoltRenderer;
+import mekanism.client.render.lib.effect.SpsBillboardGeometry;
+import mekanism.client.render.MekanismRenderType;
 import mekanism.client.render.tileentity.RenderSPS.SPSRenderState;
 import mekanism.common.base.ProfilerConstants;
 import mekanism.common.content.sps.SPSMultiblockData;
@@ -67,6 +69,9 @@ public class RenderSPS extends MultiblockTileEntityRenderer<SPSMultiblockData, T
         BlockPos pos = state.blockPos;
         BoltRenderer bolts = boltRendererMap.computeIfAbsent(multiblock.inventoryID, mb -> new BoltRenderer());
 
+        state.bolts = bolts;
+        state.gameTime = sps.getLevel().getGameTime();
+        state.partialTick = partialTick;
         int targetEffectCount = 0;
         boolean tickingNormally = isTickingNormally(sps);
         if (tickingNormally) {
@@ -97,32 +102,43 @@ public class RenderSPS extends MultiblockTileEntityRenderer<SPSMultiblockData, T
             //TODO - 26.1: Do we want to just use the level's random instead?
             sps.orbitEffects.add(new SPSOrbitEffect(multiblock, state.center));
         }
+        state.effects = sps.orbitEffects.stream().map(effect -> {
+            CustomEffect snapshot = new CustomEffect(effect.getTexture(), effect.getTextureGridSize());
+            snapshot.setPos(effect.getPos(partialTick));
+            snapshot.setScale(effect.getScale());
+            snapshot.setColor(effect.getColor());
+            return snapshot;
+        }).toList();
     }
 
     @Override
     public void submit(SPSRenderState state, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState camera) {
-        //TODO - 26.1: Figure out how to render these things, should they potentially use the CustomGeometryRenderer thing?
-        // I think the billboarding effects might be able to use a model part, which then might let them be ordered properly in terms of transparency
-        //bolts.render(partialTick, poseStack, renderer);
-
-        poseStack.pushPose();
-        //Because our center points are the center of the multiblock, we translate back to 0,0,0
-        //TODO - 26.1: Test this is the proper way to handle that we used to shift the billboarding effect renderer by the camera position
-        // when we were batching rendering of billboarding effects
-        poseStack.translate(-state.blockPos.getX(), -state.blockPos.getY(), -state.blockPos.getZ());
-
-        if (state.processed > 0 && state.center != null) {
-            //TODO - 26.1: ProfilerConstants.SPS_CORE ?
-            CORE.setPos(state.center);
-            CORE.setScale(state.lerpEnergy(MIN_SCALE, MAX_SCALE));
-            //BillboardingEffectRenderer.render(CORE, camera, renderer, poseStack, renderTick, partialTick);
+        if (state.bolts != null && state.bolts.hasBoltsToRender()) {
+            nodeCollector.submitCustomGeometry(poseStack, MekanismRenderType.MEK_LIGHTNING,
+                    (pose, buffer) -> state.bolts.renderVertices(state.gameTime, state.partialTick, pose.pose(), buffer, null));
         }
-
-        //TODO - 26.1: ProfilerConstants.SPS_ORBIT ?
-        /*for (SPSOrbitEffect effect : sps.orbitEffects) {
-            BillboardingEffectRenderer.render(effect, camera, renderer, poseStack, renderTick, partialTick);
-        }*/
+        poseStack.pushPose();
+        poseStack.translate(-state.blockPos.getX(), -state.blockPos.getY(), -state.blockPos.getZ());
+        if (state.processed > 0 && state.center != null) {
+            CustomEffect core = new CustomEffect(CORE.getTexture(), CORE.getTextureGridSize());
+            core.setColor(CORE.getColor());
+            core.setPos(state.center);
+            core.setScale(state.lerpEnergy(MIN_SCALE, MAX_SCALE));
+            submitEffect(core, state, poseStack, nodeCollector, camera);
+        }
+        for (CustomEffect effect : state.effects) {
+            submitEffect(effect, state, poseStack, nodeCollector, camera);
+        }
         poseStack.popPose();
+    }
+
+    private static void submitEffect(CustomEffect effect, SPSRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState camera) {
+        collector.submitCustomGeometry(stack, net.minecraft.client.renderer.rendertype.RenderTypes.entityTranslucentEmissive(effect.getTexture()), (pose, buffer) -> {
+            PoseStack drawing = new PoseStack();
+            drawing.last().pose().set(pose.pose());
+            drawing.last().normal().set(pose.normal());
+            SpsBillboardGeometry.render(effect, camera, ignored -> buffer, drawing, (int) (state.gameTime % Integer.MAX_VALUE), 0);
+        });
     }
 
     private static BoltEffect getBoltFromData(CoilData data, BlockPos pos, Vec3 center) {
@@ -148,6 +164,10 @@ public class RenderSPS extends MultiblockTileEntityRenderer<SPSMultiblockData, T
 
         @Nullable
         public Vec3 center;
+        public BoltRenderer bolts;
+        public long gameTime;
+        public float partialTick;
+        public java.util.List<CustomEffect> effects = java.util.List.of();
         public double processed;
         public float energyScale;
 

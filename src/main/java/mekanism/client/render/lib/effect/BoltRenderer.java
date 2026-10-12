@@ -45,8 +45,10 @@ public class BoltRenderer {
     }
 
     public void render(long gameTime, float partialTicks, PoseStack matrixStack, MultiBufferSource bufferIn, @Nullable Vec3 cameraPos) {
-        VertexConsumer buffer = bufferIn.getBuffer(MekanismRenderType.MEK_LIGHTNING);
-        Matrix4f matrix = matrixStack.last().pose();
+        renderVertices(gameTime, partialTicks, matrixStack.last().pose(), bufferIn.getBuffer(MekanismRenderType.MEK_LIGHTNING), cameraPos);
+    }
+
+    public void renderVertices(long gameTime, float partialTicks, Matrix4f matrix, VertexConsumer buffer, @Nullable Vec3 cameraPos) {
         Timestamp timestamp = new Timestamp(gameTime, partialTicks);
         boolean refresh = timestamp.isPassed(refreshTimestamp, 1 / REFRESH_TIME);
         if (refresh) {
