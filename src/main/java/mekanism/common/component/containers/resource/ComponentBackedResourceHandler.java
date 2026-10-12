@@ -21,6 +21,32 @@ public class ComponentBackedResourceHandler<RESOURCE extends Resource, CONTAINER
         super(containerType, attachedAccess, totalContainers, validateItemType);
     }
 
+    // Concrete dispatch avoids competing modern/legacy interface defaults in chemical subclasses.
+    @Override
+    public int insert(int index, RESOURCE resource, int amount, TransactionContext transaction) {
+        return insert(index, resource, amount, transaction, AutomationType.EXTERNAL);
+    }
+
+    @Override
+    public int extract(int index, RESOURCE resource, int amount, TransactionContext transaction) {
+        return extract(index, resource, amount, transaction, AutomationType.EXTERNAL);
+    }
+
+    @Override
+    public int insert(RESOURCE resource, int amount, TransactionContext transaction) {
+        return insert(resource, amount, transaction, AutomationType.EXTERNAL);
+    }
+
+    @Override
+    public int extract(RESOURCE resource, int amount, TransactionContext transaction) {
+        return extract(resource, amount, transaction, AutomationType.EXTERNAL);
+    }
+
+    @Override
+    public boolean isValid(int index, RESOURCE resource) {
+        return IMekanismResourceHandler.super.isValid(index, resource);
+    }
+
     private int getPerItem(int amount) {
         return isAccessInvalid() ? 0 : amount / attachedAccess.getAmount();
     }
