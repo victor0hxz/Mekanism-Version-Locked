@@ -239,8 +239,9 @@ public class MatrixEnergyContainer implements IEnergyContainer {
 
     @Override
     public boolean isValidForExtraction(AutomationType automationType) {
-        //Don't allow forcibly extracting from our container so that we ensure that the contents of the matrix's slots get first pickings at being filled
-        return !automationType.isExternal();
+        // Allow networks to pull through output ports; input ports remain blocked by their holder.
+        // The port holder enforces input/output mode. External pull shares the same per-tick budget as push.
+        return true;
     }
 
     @Override
