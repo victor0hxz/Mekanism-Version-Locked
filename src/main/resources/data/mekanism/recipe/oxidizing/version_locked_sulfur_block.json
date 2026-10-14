@@ -1,0 +1,20 @@
+{
+  "type": "mekanism:oxidizing",
+  "input": {
+    "count": 1,
+    "ingredient": "#c:storage_blocks/sulfur"
+  },
+  "output": {
+    "amount": 900,
+    "id": "mekanism:sulfur_dioxide"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:storage_blocks/sulfur"
+      }
+    }
+  ]
+}

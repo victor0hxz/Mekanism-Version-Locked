@@ -79,8 +79,8 @@ public abstract class BlockMekanism extends Block {
     @Override
     public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player player) {
         ItemStack stack = super.getCloneItemStack(world, pos, state, includeData, player);
-        //TODO - 26.1: Do we also want to check the includeData field in this if statement?
-        if (MekanismConfig.common.copyBlockData.get()) {
+        // Construction tools request a clean item; only explicit data picks may copy machine contents.
+        if (includeData && MekanismConfig.common.copyBlockData.get()) {
             TileEntityUpdateable tile = WorldUtils.getTileEntity(TileEntityUpdateable.class, world, pos);
             if (tile != null) {
                 stack.applyComponents(tile.collectComponents());
