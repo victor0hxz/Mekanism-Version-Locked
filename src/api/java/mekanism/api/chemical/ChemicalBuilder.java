@@ -1,16 +1,23 @@
 package mekanism.api.chemical;
 
 import java.util.Objects;
+import mekanism.api.datamaps.chemical.ChemicalSolidTag;
+import net.minecraft.core.registries.Registries;
 import mekanism.api.MekanismAPI;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.CommonColors;
 import net.neoforged.fml.loading.FMLEnvironment;
+import org.jspecify.annotations.Nullable;
 
 public class ChemicalBuilder {
 
     private final Identifier texture;
     private int tint = CommonColors.WHITE;
+    @Nullable
+    private ChemicalSolidTag legacyOreTag;
 
     protected ChemicalBuilder(Identifier texture) {
         this.texture = texture;
@@ -41,6 +48,31 @@ public class ChemicalBuilder {
     /// @return Tint in AARRGGBB format.
     public int getTint() {
         return tint;
+    }
+
+    /// Legacy API compatibility for modpacks using ChemicalBuilder.cleanSlurry().ore("c:ores/material").
+    ///
+    /// This represents the item tag used to display a slurry in the Chemical Crystallizer.
+    /// Data maps take precedence; this value is only a fallback when no data map entry exists.
+    ///
+    /// @deprecated Prefer the mekanism:chemical_solid_tag data map.
+    @Deprecated(forRemoval = false)
+    public ChemicalBuilder ore(String oreTag) {
+        String tag = Objects.requireNonNull(oreTag, "oreTag").trim();
+        if (tag.startsWith("#")) {
+            tag = tag.substring(1);
+        }
+        Identifier id = Identifier.tryParse(tag);
+        if (id == null || tag.isBlank()) {
+            throw new IllegalArgumentException("Invalid legacy ore tag: " + oreTag);
+        }
+        legacyOreTag = new ChemicalSolidTag(TagKey.create(Registries.ITEM, id));
+        return this;
+    }
+
+    /// Returns a legacy ore association, if one was declared by an older integration.
+    public @Nullable ChemicalSolidTag getLegacyOreTag() {
+        return legacyOreTag;
     }
 
     /// Creates a builder for registering a [Chemical], with a given texture.

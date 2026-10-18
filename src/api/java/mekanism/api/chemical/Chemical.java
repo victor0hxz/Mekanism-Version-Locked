@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import mekanism.api.MekanismAPI;
 import mekanism.api.datamaps.IMekanismDataMapTypes;
+import mekanism.api.datamaps.chemical.ChemicalSolidTag;
 import mekanism.api.datamaps.chemical.attribute.ChemicalRadioactivity;
 import mekanism.api.datamaps.chemical.attribute.IChemicalAttribute;
 import mekanism.api.radiation.IRadiationManager;
@@ -78,6 +79,8 @@ public class Chemical implements IHasTranslationKey, IHasTextComponent {
     private final List<IChemicalAttribute> attributesView = Collections.unmodifiableList(attributes);
     private final Identifier iconLocation;
     private final int tint;
+    @Nullable
+    private final ChemicalSolidTag legacyOreTag;
     private double radioactivity;
     private boolean hasAttributesWithValidation;
 
@@ -87,6 +90,7 @@ public class Chemical implements IHasTranslationKey, IHasTextComponent {
     public Chemical(ChemicalBuilder builder) {
         this.iconLocation = builder.getTexture();
         this.tint = builder.getTint();
+        this.legacyOreTag = builder.getLegacyOreTag();
     }
 
     @Override
@@ -155,6 +159,14 @@ public class Chemical implements IHasTranslationKey, IHasTextComponent {
     /// @return int representation of color in AARRGGBB format
     public int getTint() {
         return tint;
+    }
+
+    /// Returns the item-tag representation for a slurry. The current data map wins if present;
+    /// the legacy ChemicalBuilder.ore(String) association is only a fallback.
+    public @Nullable ChemicalSolidTag getSolidRepresentation() {
+        Holder<Chemical> holder = MekanismAPI.CHEMICAL_REGISTRY.wrapAsHolder(this);
+        ChemicalSolidTag data = holder.getData(IMekanismDataMapTypes.INSTANCE.chemicalSolidTag());
+        return data != null ? data : legacyOreTag;
     }
 
     /// Get the color representation used for displaying in things like durability bars of chemical tanks.

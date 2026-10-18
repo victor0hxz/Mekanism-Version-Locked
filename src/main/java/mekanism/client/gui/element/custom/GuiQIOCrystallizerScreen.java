@@ -69,7 +69,7 @@ public class GuiQIOCrystallizerScreen extends GuiInnerScreen {
                     prevSlurry = chemical;
                     iterStacks.clear();
                     if (!prevSlurry.is(MekanismAPI.EMPTY_CHEMICAL_KEY)) {
-                        ChemicalSolidTag tag = chemical.getData(IMekanismDataMapTypes.INSTANCE.chemicalSolidTag());
+                        ChemicalSolidTag tag = chemical.getChemical().getSolidRepresentation();
                         if (tag != null) {
                             Named<Item> tagContents = tag.lookupTag().orElse(null);
                             if (tagContents != null) {

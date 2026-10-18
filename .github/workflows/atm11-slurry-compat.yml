@@ -1,0 +1,48 @@
+name: ATM11 legacy slurry compatibility validation
+
+on:
+  push:
+    branches:
+      - fix/atm11-0.12-legacy-slurry-api
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Enable Gradle wrapper
+        run: chmod +x ./gradlew
+      - name: Compile and test Mekanism
+        run: ./gradlew --no-daemon --stacktrace compileApiJava compileJava test jar
+      - name: Download verified 2.9 release base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p publication/base
+          gh release download version-locked-2.9 --pattern 'Mekanism-Version-Locked-26.1.2-2.9.jar' --dir publication/base
+      - name: Build 2.10.0 candidate with preserved 2.9 hotfixes
+        run: |
+          python3 publication/build_compat_overlay.py \
+            publication/base/Mekanism-Version-Locked-26.1.2-2.9.jar \
+            build/libs/Mekanism-26.1.2-10.8.0.homebaked.jar \
+            Mekanism-Version-Locked-26.1.2-2.10.0-CANDIDATE.jar
+      - name: Upload candidate artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mekanism-version-locked-2.10-candidate
+          path: |
+            Mekanism-Version-Locked-26.1.2-2.10.0-CANDIDATE.jar
+            Mekanism-Version-Locked-26.1.2-2.10.0-CANDIDATE.jar.sha256
+            CHANGELOG-MEKANISM-2.10.md
+          if-no-files-found: error
