@@ -3,6 +3,7 @@
 
 Only four classes are replaced, preserving all existing hotfixes/resources.
 """
+import copy
 import hashlib
 import json
 import sys
@@ -36,7 +37,7 @@ def main():
         with zipfile.ZipFile(output, "w", allowZip64=True) as result:
             result.comment = old.comment
             for info in old.infolist():
-                result.writestr(info, new.read(info.filename) if info.filename in REPLACEMENTS else old.read(info.filename))
+                result.writestr(copy.copy(info), new.read(info.filename) if info.filename in REPLACEMENTS else old.read(info.filename))
             result.writestr(
                 "META-INF/version-locked-compatibility-2.10.json",
                 json.dumps(metadata, indent=2).encode("utf-8"),
