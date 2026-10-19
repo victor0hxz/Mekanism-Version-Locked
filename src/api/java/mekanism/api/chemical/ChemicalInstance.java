@@ -1,6 +1,7 @@
 package mekanism.api.chemical;
 
 import com.mojang.serialization.Codec;
+import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import com.mojang.serialization.DataResult;
 import mekanism.api.MekanismAPI;
 import mekanism.api.SerializationConstants;
@@ -9,9 +10,17 @@ import net.minecraft.core.TypedInstance;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemInstance;
+import org.jspecify.annotations.Nullable;
 
 ///@since 10.8.0
 public interface ChemicalInstance extends TypedInstance<Chemical> {
+
+    @Override
+    @Nullable
+    default <T> T getData(DataMapType<Chemical, T> type) {
+        T data = typeHolder().getData(type);
+        return data != null ? data : typeHolder().value().getLegacyData(type);
+    }
 
     String FIELD_ID = ItemInstance.FIELD_ID;
     String FIELD_AMOUNT = SerializationConstants.AMOUNT;

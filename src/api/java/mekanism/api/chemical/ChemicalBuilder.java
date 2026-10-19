@@ -5,12 +5,17 @@ import mekanism.api.MekanismAPI;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.CommonColors;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import org.jspecify.annotations.Nullable;
 
 public class ChemicalBuilder {
 
     private final Identifier texture;
     private int tint = CommonColors.WHITE;
+    @Nullable
+    private TagKey<Item> oreTag;
 
     protected ChemicalBuilder(Identifier texture) {
         this.texture = texture;
@@ -26,14 +31,37 @@ public class ChemicalBuilder {
     /// @param tint Color in AARRGGBB format
     public ChemicalBuilder tint(int tint) {
         if (ARGB.alpha(tint) == 0) {
-            if (FMLEnvironment.isProduction()) {
-                tint = ARGB.opaque(tint);
-            } else {
-                throw new IllegalArgumentException("Chemical tint should now includes alpha.");
-            }
+            tint = ARGB.opaque(tint);
         }
         this.tint = tint;
         return this;
+    }
+
+    /// Restores the legacy slurry ore tag builder API used by startup scripts.
+    public ChemicalBuilder ore(String oreTag) {
+        Identifier id = Identifier.tryParse(Objects.requireNonNull(oreTag));
+        if (id == null) {
+            throw new IllegalArgumentException("Invalid chemical ore tag: " + oreTag);
+        }
+        return ore(id);
+    }
+
+    public ChemicalBuilder ore(Identifier oreTag) {
+        return ore(TagKey.create(Registries.ITEM, Objects.requireNonNull(oreTag)));
+    }
+
+    public ChemicalBuilder ore(TagKey<Item> oreTag) {
+        Objects.requireNonNull(oreTag);
+        if (!oreTag.isFor(Registries.ITEM)) {
+            throw new IllegalArgumentException("Chemical ore tag must belong to the item registry");
+        }
+        this.oreTag = oreTag;
+        return this;
+    }
+
+    @Nullable
+    public TagKey<Item> getOreTag() {
+        return oreTag;
     }
 
     /// Gets the tint to apply to this chemical when rendering.

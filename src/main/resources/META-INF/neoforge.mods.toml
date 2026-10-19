@@ -33,3 +33,5 @@ license="MIT"
     versionRange="${fb_version}"
     ordering="NONE"
     side="BOTH"
+[[mixins]]
+    config="mekanism-scriptcompat.mixins.json"

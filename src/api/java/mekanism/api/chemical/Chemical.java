@@ -28,6 +28,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import mekanism.api.datamaps.chemical.ChemicalSolidTag;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -78,6 +81,8 @@ public class Chemical implements IHasTranslationKey, IHasTextComponent {
     private final List<IChemicalAttribute> attributesView = Collections.unmodifiableList(attributes);
     private final Identifier iconLocation;
     private final int tint;
+    @Nullable
+    private final ChemicalSolidTag legacySolidTag;
     private double radioactivity;
     private boolean hasAttributesWithValidation;
 
@@ -87,6 +92,15 @@ public class Chemical implements IHasTranslationKey, IHasTextComponent {
     public Chemical(ChemicalBuilder builder) {
         this.iconLocation = builder.getTexture();
         this.tint = builder.getTint();
+        TagKey<Item> oreTag = builder.getOreTag();
+        this.legacySolidTag = oreTag == null ? null : new ChemicalSolidTag(oreTag);
+    }
+
+    /// Supplies legacy builder metadata only when a data map has no explicit value.
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> T getLegacyData(DataMapType<Chemical, T> type) {
+        return type == IMekanismDataMapTypes.INSTANCE.chemicalSolidTag() ? (T) legacySolidTag : null;
     }
 
     @Override

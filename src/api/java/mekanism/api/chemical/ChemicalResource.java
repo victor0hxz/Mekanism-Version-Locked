@@ -1,6 +1,7 @@
 package mekanism.api.chemical;
 
 import com.mojang.serialization.Codec;
+import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import java.util.Optional;
 import mekanism.api.MekanismAPI;
 import mekanism.api.MekanismPreconditions;
@@ -84,6 +85,13 @@ public final class ChemicalResource implements RegisteredResource<Chemical>, IHa
     @Override
     public Chemical value() {
         return chemicalType.value();
+    }
+
+    @Override
+    @Nullable
+    public <T> T getData(DataMapType<Chemical, T> type) {
+        T data = typeHolder().getData(type);
+        return data != null ? data : value().getLegacyData(type);
     }
 
     /// @return The [Chemical] of this resource from the inner [ChemicalStack]
