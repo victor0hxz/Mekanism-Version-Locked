@@ -49,6 +49,7 @@ public class Capabilities {
     //Note: We intentionally don't use the entity automation capability, as we want to be able to target player inventories and the like
     public static final MultiTypeCapability<ResourceHandler<ItemResource>> ITEM = new MultiTypeCapability<>(Item.BLOCK, Item.ITEM, Item.ENTITY);
 
+    // Keep the shared token modern; legacy provider adapters also implement ResourceHandler.
     public static final MultiTypeCapability<ResourceHandler<ChemicalResource>> CHEMICAL = new MultiTypeCapability<>(Mekanism.rl("chemical_handler"), ResourceHandler.asClass());
 
     public static final BlockCapability<IHeatHandler, @Nullable Direction> HEAT = BlockCapability.createSided(Mekanism.rl("heat_handler"), IHeatHandler.class);

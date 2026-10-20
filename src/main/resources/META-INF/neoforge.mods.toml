@@ -35,3 +35,5 @@ license="MIT"
     side="BOTH"
 [[mixins]]
     config="mekanism-scriptcompat.mixins.json"
+[[mixins]]
+    config="mekanism-xycraft.mixins.json"
